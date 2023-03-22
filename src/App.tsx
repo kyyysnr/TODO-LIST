@@ -1,6 +1,6 @@
 /* eslint-disable array-callback-return */
 
-import React, { useState } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import { v4 as uuidv4 } from 'uuid';
 
 import './App.css';
@@ -16,26 +16,16 @@ function App() {
   const [searchedTodos, setSearchedTodos] = useState<Todo[]>([]);
   const [status, setStatus] =useState<string>()
 
-
-  enum TodoStatus {
-    Incomplete = "incomplete",
-    Started = "started",
-    Complete = "complete",
-  }
-
   type Todo = {
     id: string;
     inputValue: string;
-    completed: boolean;
     createDate: Date;
     deadLine: Date;
-    status: TodoStatus;
+    status: 'incomplete'|'complete'|'started';
   }
   
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    // console.log(e.target.value)
-    setInputValue(e.target.value)
-    // console.log(inputValue);
+    setInputValue(e.target.value)   
   }
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -45,27 +35,22 @@ function App() {
     const newTodo: Todo = {
       id: uuidv4(),
       inputValue: inputValue,
-      completed: false,
       createDate: now,
       deadLine: threeDaysLater,
-      status: TodoStatus.Incomplete
+      status: 'incomplete'
     }
-
-    console.log(newTodo)
-    if (inputValue) {
-      setTodos([newTodo, ...todos]);
-      setInputValue("");     
-    }  
+    if (inputValue === '') return
+    setTodos([newTodo, ...todos]);     
+    setInputValue(""); 
   }
 
   
   const handleStarted = (id: string) => {
-    const updatedTodos = todos.map(todo => {
+    const updatedTodos: Todo[] = todos.map(todo => {
       if (todo.id === id) {
         return {
           ...todo,
-          completed: false,
-          status: TodoStatus.Started
+          status: "started"
         };
       }
       return todo;
@@ -75,13 +60,20 @@ function App() {
   }
 
   const handleComplete = (id: string) => {
-    const updatedTodos = todos.map(todo => {
+    const updatedTodos: Todo[] = todos.map(todo => {
       if (todo.id === id) {
-        return {
-          ...todo,
-          completed: true,
-          status: TodoStatus.Complete
-        };
+        if (todo.status === 'complete') {
+          return{
+            ...todo, 
+            status: "incomplete"
+          } 
+          
+        } else if (todo.status === 'incomplete') {
+          return{
+            ...todo, 
+            status: "complete"
+          }        
+        }      
       }
       return todo;
     });
@@ -89,20 +81,6 @@ function App() {
     console.log(updatedTodos);
   }
 
-  const handleNonComplete = (id: string) => {
-    const updatedTodos = todos.map(todo => {
-      if (todo.id === id) {
-        return {
-          ...todo,
-          completed: false,
-          status: TodoStatus.Incomplete
-        };
-      }
-      return todo;
-    });
-    setTodos(updatedTodos);
-    console.log(updatedTodos);
-  }
   
  
 
@@ -112,24 +90,13 @@ function App() {
     setEditValue(inputValue)
     console.log(editing)
     console.log(editId)
-
   }
 
   const handleEditSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     
-    const updatedTodos = todos.map(todo => {
-      if (todo.id === editId) {
-        return {
-          ...todo,
-          inputValue: editValue,
-        };
-      }
-      return todo;
-    });
+    const updatedTodos = todos.map(todo => todo.id === editId ? {...todo, inputValue: editValue} : todo);
     setTodos(updatedTodos);
     setEditing(false)
-
-
   }
 
   const handleEditCancel = () => {
@@ -157,44 +124,36 @@ function App() {
     e.preventDefault();
     const searchTodos = todos.filter(todo => todo.inputValue.includes(searchText));
     setSearchedTodos(searchTodos);
-    // console.log('-------検索結果--------')
-    // console.log(searchedTodos)
-    // console.log('-------元々のTODO--------')
-    // console.log(todos)
-
   }
+
   const handleFilterAllStatus = () => {
     setStatus('')
-    handleFilterTodos()
   }
+  
   const handleFilterInCompleteStatus = () => {
     setStatus('incomplete')
-    handleFilterTodos()
   }
+  
   const handleFilterCompleteStatus = () => {
     setStatus('complete')
-    handleFilterTodos()
   }
+  
   const handleFilterStartedStatus = () => {
     setStatus('started')
-    handleFilterTodos()
   }
-
-  const handleFilterTodos = () => {
-    if (status === 'incomplete') {
-      const filteredTodos = todos.filter(todo => todo.status === TodoStatus.Incomplete)
-      setSearchedTodos(filteredTodos)
-    } else if (status === 'complete') {
-      const filteredTodos = todos.filter(todo => todo.status === TodoStatus.Complete)
-      setSearchedTodos(filteredTodos)
-    } else if (status === 'started') {
-      const filteredTodos = todos.filter(todo => todo.status === TodoStatus.Started)
+  
+  const handleFilterTodos = useCallback(() => {
+    if (status !== '') {
+      const filteredTodos = todos.filter(todo => todo.status === status)
       setSearchedTodos(filteredTodos)
     } else {
-      const filteredTodos = todos
-      setSearchedTodos(filteredTodos)
+      setSearchedTodos(todos)
     }
-  }
+  }, [status, todos])
+  
+  useEffect(() => {
+    handleFilterTodos()
+  }, [handleFilterTodos])
 
   return (
     <div className="App">
@@ -232,7 +191,7 @@ function App() {
       ):(!editing ? (
       <div>
         <form onSubmit={(e) => handleSubmit(e)}>
-          <input type="text" placeholder='TODOを入力' onChange={(e)=> handleChange(e)} />
+          <input type="text" placeholder='TODOを入力' value={inputValue} onChange={(e)=> handleChange(e)} />
           <input type="submit" value='作成' />
           <button onClick={()=> handleFilter()}>検索</button>
         </form>
@@ -262,18 +221,16 @@ function App() {
                 <p>{todo.inputValue}</p>
                 <p>作成日：{todo.createDate.toLocaleString()}</p>
                 <p>締切：{todo.deadLine.toLocaleString()}</p>
-                <button onClick={() => handleStarted(todo.id)}>開始</button>
-                <button onClick={() => handleComplete(todo.id)}>完了</button>
-                <button onClick={() => handleEditing(todo.id,todo.inputValue)}>編集</button>
+              
               </li>
             )
           })}
           
         </ul>
 
-        {/* <h3>未完了のタスク</h3>
+        <h3>未完了のタスク</h3>
         <ul>
-          {todos.filter(todo => !todo.completed).map((todo) => {
+          {todos.filter(todo => todo.status === "incomplete").map((todo) => {
             return(
               <li key={todo.id}>
                 
@@ -287,23 +244,42 @@ function App() {
             )
           })}
           
-        </ul> */}
+        </ul> 
       </div>
       <div>
-        {/* <h3>完了済みのタスク</h3>
+      <h3>開始済みのタスク</h3>
         <ul>
-          {todos.filter(todo => todo.completed).map((todo) => {
+          {todos.filter(todo => todo.status === "started").map((todo) => {
+            return(
+              <li key={todo.id}>
+                
+                <p>{todo.inputValue}</p>
+                <p>作成日：{todo.createDate.toLocaleString()}</p>
+                <p>締切：{todo.deadLine.toLocaleString()}</p>
+                <button onClick={() => handleStarted(todo.id)}>開始</button>
+                <button onClick={() => handleComplete(todo.id)}>完了</button>
+                <button onClick={() => handleEditing(todo.id,todo.inputValue)}>編集</button>
+              </li>
+            )
+          })}
+          
+        </ul> 
+      </div>
+      <div>
+        <h3>完了済みのタスク</h3>
+        <ul>
+          {todos.filter(todo => todo.status === "complete").map((todo) => {
             return(
               <li key={todo.id}>
               <p>{todo.inputValue}</p>
               <p>作成日：{todo.createDate.toLocaleString()}</p>
               <p>締切：{todo.deadLine.toLocaleString()}</p>
-              <button onClick={() => handleNonComplete(todo.id)}>戻す</button>
+              <button onClick={() => handleComplete(todo.id)}>戻す</button>
               
             </li>
             )
           })}
-        </ul> */}
+        </ul>
       </div>
     </div>
   );
