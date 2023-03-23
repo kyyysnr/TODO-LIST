@@ -15,7 +15,7 @@ function App() {
   const [searchText, setSearchText] = useState('')
   const [searchedTodos, setSearchedTodos] = useState<Todo[]>([]);
   const [status, setStatus] =useState<string>()
-  const [todoSearch, setTodoSearch] = useState<boolean>(false)
+  const [todoSearch, setTodoSearch] = useState<boolean>(true)
 
   type Todo = {
     id: string;
@@ -214,7 +214,7 @@ function App() {
         <button onClick={()=> handleFilterStartedStatus()}>開始済みのTODO</button>
         <button onClick={()=>handleFilterCompleteStatus()}>完了済みのTODO</button>
         <button onClick={()=>handleFilterCancel()}>戻る</button>
-        { todoSearch? (
+        { !todoSearch? (
           <div>
           <h3>未完了のタスク</h3>
           <ul>
