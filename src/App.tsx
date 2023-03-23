@@ -15,6 +15,7 @@ function App() {
   const [searchText, setSearchText] = useState('')
   const [searchedTodos, setSearchedTodos] = useState<Todo[]>([]);
   const [status, setStatus] =useState<string>()
+  const [todoSearch, setTodoSearch] = useState<boolean>(false)
 
   type Todo = {
     id: string;
@@ -68,7 +69,7 @@ function App() {
             status: "incomplete"
           } 
           
-        } else if (todo.status === 'incomplete') {
+        } else if (todo.status === 'incomplete' || todo.status === 'started') {
           return{
             ...todo, 
             status: "complete"
@@ -138,17 +139,17 @@ function App() {
 
   const handleFilterCancel = () => {
     setSearchedTodos([])
-    setTodoFilter(false)
+    setTodoSearch(false)
   }
   
   const handleFilterTodos = useCallback(() => {
     if (status !== '') {
       const filteredTodos = todos.filter(todo => todo.status === status)
       setSearchedTodos(filteredTodos)
-      setTodoFilter(true)
+      setTodoSearch(true)
     } else {
       setSearchedTodos(todos)
-      setTodoFilter(true)
+      setTodoSearch(true)
     }
   }, [status, todos])
   
@@ -213,7 +214,54 @@ function App() {
         <button onClick={()=> handleFilterStartedStatus()}>開始済みのTODO</button>
         <button onClick={()=>handleFilterCompleteStatus()}>完了済みのTODO</button>
         <button onClick={()=>handleFilterCancel()}>戻る</button>
-        { todoFilter? (
+        { todoSearch? (
+          <div>
+          <h3>未完了のタスク</h3>
+          <ul>
+            {todos.filter(todo => todo.status === "incomplete").map((todo) => {
+              return(
+                <li key={todo.id}>      
+                  <p>{todo.inputValue}</p>
+                  <p>作成日：{todo.createDate.toLocaleString()}</p>
+                  <p>締切：{todo.deadLine.toLocaleString()}</p>
+                  <button onClick={() => handleStarted(todo.id)}>開始</button>
+                  <button onClick={() => handleComplete(todo.id)}>完了</button>
+                  <button onClick={() => handleEditing(todo.id,todo.inputValue)}>編集</button>
+                </li>
+              )
+            })} 
+          </ul> 
+          <h3>開始済みのタスク</h3>
+          <ul>
+            {todos.filter(todo => todo.status === "started").map((todo) => {
+              return(
+                <li key={todo.id}>
+                  
+                  <p>{todo.inputValue}</p>
+                  <p>作成日：{todo.createDate.toLocaleString()}</p>
+                  <p>締切：{todo.deadLine.toLocaleString()}</p>
+                  <button onClick={() => handleStarted(todo.id)}>開始</button>
+                  <button onClick={() => handleComplete(todo.id)}>完了</button>
+                  <button onClick={() => handleEditing(todo.id,todo.inputValue)}>編集</button>
+                </li>
+              )
+            })}     
+          </ul> 
+          <h3>完了済みのタスク</h3>
+          <ul>
+            {todos.filter(todo => todo.status === "complete").map((todo) => {
+              return(
+                <li key={todo.id}>
+                <p>{todo.inputValue}</p>
+                <p>作成日：{todo.createDate.toLocaleString()}</p>
+                <p>締切：{todo.deadLine.toLocaleString()}</p>
+                <button onClick={() => handleComplete(todo.id)}>戻す</button>        
+              </li>
+              )
+            })}
+          </ul>
+        </div>
+        ):(
           <div>
             <h3>フィルタリングしたTODO</h3>
             <ul>
@@ -231,53 +279,7 @@ function App() {
               
             </ul>
           </div>
-        ):(
-          <div>
-            <h3>未完了のタスク</h3>
-            <ul>
-              {todos.filter(todo => todo.status === "incomplete").map((todo) => {
-                return(
-                  <li key={todo.id}>      
-                    <p>{todo.inputValue}</p>
-                    <p>作成日：{todo.createDate.toLocaleString()}</p>
-                    <p>締切：{todo.deadLine.toLocaleString()}</p>
-                    <button onClick={() => handleStarted(todo.id)}>開始</button>
-                    <button onClick={() => handleComplete(todo.id)}>完了</button>
-                    <button onClick={() => handleEditing(todo.id,todo.inputValue)}>編集</button>
-                  </li>
-                )
-              })} 
-            </ul> 
-            <h3>開始済みのタスク</h3>
-            <ul>
-              {todos.filter(todo => todo.status === "started").map((todo) => {
-                return(
-                  <li key={todo.id}>
-                    
-                    <p>{todo.inputValue}</p>
-                    <p>作成日：{todo.createDate.toLocaleString()}</p>
-                    <p>締切：{todo.deadLine.toLocaleString()}</p>
-                    <button onClick={() => handleStarted(todo.id)}>開始</button>
-                    <button onClick={() => handleComplete(todo.id)}>完了</button>
-                    <button onClick={() => handleEditing(todo.id,todo.inputValue)}>編集</button>
-                  </li>
-                )
-              })}     
-            </ul> 
-            <h3>完了済みのタスク</h3>
-            <ul>
-              {todos.filter(todo => todo.status === "complete").map((todo) => {
-                return(
-                  <li key={todo.id}>
-                  <p>{todo.inputValue}</p>
-                  <p>作成日：{todo.createDate.toLocaleString()}</p>
-                  <p>締切：{todo.deadLine.toLocaleString()}</p>
-                  <button onClick={() => handleComplete(todo.id)}>戻す</button>        
-                </li>
-                )
-              })}
-            </ul>
-          </div>
+          
         )}
         
 
