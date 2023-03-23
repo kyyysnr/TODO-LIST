@@ -121,23 +121,8 @@ function App() {
     setSearchedTodos(searchTodos);
   }
 
-  const handleFilterAllStatus = () => {
-    setStatus('')
-    setTodoSearch(false)
-  }
-  
-  const handleFilterInCompleteStatus = () => {
-    setStatus('incomplete')
-    setTodoSearch(false)
-  }
-  
-  const handleFilterCompleteStatus = () => {
-    setStatus('complete')
-    setTodoSearch(false)
-  }
-  
-  const handleFilterStartedStatus = () => {
-    setStatus('started')
+  const handleFilterStatus = (e: React.SetStateAction<string | undefined>) => {
+    setStatus(e)
     setTodoSearch(false)
   }
 
@@ -211,10 +196,10 @@ function App() {
       ))}
       
       <div>
-        <button onClick={()=>handleFilterAllStatus()}>全てのTODO</button>
-        <button onClick={()=>handleFilterInCompleteStatus()}>未完了のTODO</button>
-        <button onClick={()=> handleFilterStartedStatus()}>開始済みのTODO</button>
-        <button onClick={()=>handleFilterCompleteStatus()}>完了済みのTODO</button>
+        <button onClick={()=>handleFilterStatus('')}>全てのTODO</button>
+        <button onClick={()=>handleFilterStatus('incomplete')}>未完了のTODO</button>
+        <button onClick={()=> handleFilterStatus('started')}>開始済みのTODO</button>
+        <button onClick={()=>handleFilterStatus('complete')}>完了済みのTODO</button>
         <button onClick={()=>handleFilterCancel()}>戻る</button>
         { todoSearch? (
           <div>
