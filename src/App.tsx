@@ -123,33 +123,35 @@ function App() {
 
   const handleFilterAllStatus = () => {
     setStatus('')
+    setTodoSearch(false)
   }
   
   const handleFilterInCompleteStatus = () => {
     setStatus('incomplete')
+    setTodoSearch(false)
   }
   
   const handleFilterCompleteStatus = () => {
     setStatus('complete')
+    setTodoSearch(false)
   }
   
   const handleFilterStartedStatus = () => {
     setStatus('started')
+    setTodoSearch(false)
   }
 
   const handleFilterCancel = () => {
     setSearchedTodos([])
-    setTodoSearch(false)
+    setTodoSearch(!todoSearch)
   }
   
   const handleFilterTodos = useCallback(() => {
     if (status !== '') {
       const filteredTodos = todos.filter(todo => todo.status === status)
-      setSearchedTodos(filteredTodos)
-      setTodoSearch(true)
+      setSearchedTodos(filteredTodos)      
     } else {
       setSearchedTodos(todos)
-      setTodoSearch(true)
     }
   }, [status, todos])
   
@@ -214,7 +216,7 @@ function App() {
         <button onClick={()=> handleFilterStartedStatus()}>開始済みのTODO</button>
         <button onClick={()=>handleFilterCompleteStatus()}>完了済みのTODO</button>
         <button onClick={()=>handleFilterCancel()}>戻る</button>
-        { !todoSearch? (
+        { todoSearch? (
           <div>
           <h3>未完了のタスク</h3>
           <ul>
