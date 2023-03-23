@@ -114,12 +114,6 @@ function App() {
     setSearchText('')
   }
 
-  const isLimitDate = (dateString: string) => {
-    const now = new Date();
-    const date = new Date(dateString);
-    return date.getTime() > now.getTime();
-  }
-
   const handleSearch = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     const searchTodos = todos.filter(todo => todo.inputValue.includes(searchText));
@@ -141,13 +135,20 @@ function App() {
   const handleFilterStartedStatus = () => {
     setStatus('started')
   }
+
+  const handleFilterCancel = () => {
+    setSearchedTodos([])
+    setTodoFilter(false)
+  }
   
   const handleFilterTodos = useCallback(() => {
     if (status !== '') {
       const filteredTodos = todos.filter(todo => todo.status === status)
       setSearchedTodos(filteredTodos)
+      setTodoFilter(true)
     } else {
       setSearchedTodos(todos)
+      setTodoFilter(true)
     }
   }, [status, todos])
   
@@ -211,75 +212,82 @@ function App() {
         <button onClick={()=>handleFilterInCompleteStatus()}>未完了のTODO</button>
         <button onClick={()=> handleFilterStartedStatus()}>開始済みのTODO</button>
         <button onClick={()=>handleFilterCompleteStatus()}>完了済みのTODO</button>
-
-        <h3>フィルタリングしたTODO</h3>
-        <ul>
-          {searchedTodos.map((todo) => {
-            return(
-              <li key={todo.id}>
-                
-                <p>{todo.inputValue}</p>
-                <p>作成日：{todo.createDate.toLocaleString()}</p>
-                <p>締切：{todo.deadLine.toLocaleString()}</p>
+        <button onClick={()=>handleFilterCancel()}>戻る</button>
+        { todoFilter? (
+          <div>
+            <h3>フィルタリングしたTODO</h3>
+            <ul>
+              {searchedTodos.map((todo) => {
+                return(
+                  <li key={todo.id}>
+                    
+                    <p>{todo.inputValue}</p>
+                    <p>作成日：{todo.createDate.toLocaleString()}</p>
+                    <p>締切：{todo.deadLine.toLocaleString()}</p>
+                  
+                  </li>
+                )
+              })}
               
-              </li>
-            )
-          })}
-          
-        </ul>
+            </ul>
+          </div>
+        ):(
+          <div>
+            <h3>未完了のタスク</h3>
+            <ul>
+              {todos.filter(todo => todo.status === "incomplete").map((todo) => {
+                return(
+                  <li key={todo.id}>      
+                    <p>{todo.inputValue}</p>
+                    <p>作成日：{todo.createDate.toLocaleString()}</p>
+                    <p>締切：{todo.deadLine.toLocaleString()}</p>
+                    <button onClick={() => handleStarted(todo.id)}>開始</button>
+                    <button onClick={() => handleComplete(todo.id)}>完了</button>
+                    <button onClick={() => handleEditing(todo.id,todo.inputValue)}>編集</button>
+                  </li>
+                )
+              })} 
+            </ul> 
+            <h3>開始済みのタスク</h3>
+            <ul>
+              {todos.filter(todo => todo.status === "started").map((todo) => {
+                return(
+                  <li key={todo.id}>
+                    
+                    <p>{todo.inputValue}</p>
+                    <p>作成日：{todo.createDate.toLocaleString()}</p>
+                    <p>締切：{todo.deadLine.toLocaleString()}</p>
+                    <button onClick={() => handleStarted(todo.id)}>開始</button>
+                    <button onClick={() => handleComplete(todo.id)}>完了</button>
+                    <button onClick={() => handleEditing(todo.id,todo.inputValue)}>編集</button>
+                  </li>
+                )
+              })}     
+            </ul> 
+            <h3>完了済みのタスク</h3>
+            <ul>
+              {todos.filter(todo => todo.status === "complete").map((todo) => {
+                return(
+                  <li key={todo.id}>
+                  <p>{todo.inputValue}</p>
+                  <p>作成日：{todo.createDate.toLocaleString()}</p>
+                  <p>締切：{todo.deadLine.toLocaleString()}</p>
+                  <button onClick={() => handleComplete(todo.id)}>戻す</button>        
+                </li>
+                )
+              })}
+            </ul>
+          </div>
+        )}
+        
 
-        <h3>未完了のタスク</h3>
-        <ul>
-          {todos.filter(todo => todo.status === "incomplete").map((todo) => {
-            return(
-              <li key={todo.id}>
-                
-                <p>{todo.inputValue}</p>
-                <p>作成日：{todo.createDate.toLocaleString()}</p>
-                <p>締切：{todo.deadLine.toLocaleString()}</p>
-                <button onClick={() => handleStarted(todo.id)}>開始</button>
-                <button onClick={() => handleComplete(todo.id)}>完了</button>
-                <button onClick={() => handleEditing(todo.id,todo.inputValue)}>編集</button>
-              </li>
-            )
-          })}
-          
-        </ul> 
+        
       </div>
       <div>
-      <h3>開始済みのタスク</h3>
-        <ul>
-          {todos.filter(todo => todo.status === "started").map((todo) => {
-            return(
-              <li key={todo.id}>
-                
-                <p>{todo.inputValue}</p>
-                <p>作成日：{todo.createDate.toLocaleString()}</p>
-                <p>締切：{todo.deadLine.toLocaleString()}</p>
-                <button onClick={() => handleStarted(todo.id)}>開始</button>
-                <button onClick={() => handleComplete(todo.id)}>完了</button>
-                <button onClick={() => handleEditing(todo.id,todo.inputValue)}>編集</button>
-              </li>
-            )
-          })}
-          
-        </ul> 
+      
       </div>
       <div>
-        <h3>完了済みのタスク</h3>
-        <ul>
-          {todos.filter(todo => todo.status === "complete").map((todo) => {
-            return(
-              <li key={todo.id}>
-              <p>{todo.inputValue}</p>
-              <p>作成日：{todo.createDate.toLocaleString()}</p>
-              <p>締切：{todo.deadLine.toLocaleString()}</p>
-              <button onClick={() => handleComplete(todo.id)}>戻す</button>
-              
-            </li>
-            )
-          })}
-        </ul>
+       
       </div>
     </div>
   );
